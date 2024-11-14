@@ -6,7 +6,7 @@ l = titan_gui.titan_login
 s = titan_gui.titan_signup
 
 if __name__ == "__main__":
-    app = m()# m, l, s
+    app = l# m, l, s
     app.mainloop()
 
     
