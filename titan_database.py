@@ -39,7 +39,7 @@ cursor.execute(
 )
 
 def connect_user_folder():
-    i#f account is created then
+    #f account is created then
     
     
 username = "admin"

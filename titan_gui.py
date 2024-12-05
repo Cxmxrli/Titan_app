@@ -1,7 +1,11 @@
 import customtkinter as tk
 from PIL import Image
+import PIL
 import titan_main_gui
-
+import planet_weather as pw
+from planet_weather import get_sunset
+import titan_FITS as tf
+from titan_FITS import current_path
 #used customtkinter documentation to help with multiwindow development
 #used to help with ctk classes: https://www.youtube.com/watch?v=GPcCLiOYVe4
 tk.set_appearance_mode("dark")#"light"
@@ -77,7 +81,7 @@ class titan_login(tk.CTk):
             height=5,
             text="Enter username & password",
             text_color="white",
-            font=(("comicsans",20)),        
+            font=(("Comic Sans",20)),        
         )
         self.info_text.place(relx=0.5, rely=0.125, relwidth=0.7, relheight=0.10, anchor="s" )
         #input areas for username and for password inputs, contain commands wich check 
@@ -88,7 +92,7 @@ class titan_login(tk.CTk):
             placeholder_text="Username",
             placeholder_text_color="grey",
             corner_radius=25,
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             fg_color="black",
             border_width=0.95,
             border_color="white",
@@ -103,7 +107,7 @@ class titan_login(tk.CTk):
             placeholder_text_color="grey",
             corner_radius=25,
             show="*",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             fg_color="black",
             border_width=0.95,
             border_color="white",
@@ -115,7 +119,7 @@ class titan_login(tk.CTk):
         #log in button, command will be to check login details
         self.log_button = tk.CTkButton(master=self.login_frame, 
             text="Log In",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             text_color="white",
             fg_color="#343638",
             #fg_color="#d622dc",
@@ -132,7 +136,7 @@ class titan_login(tk.CTk):
         #sign up button, command will be to create account details in database
         self.signup_button = tk.CTkButton(master=self.login_frame, 
             text="Sign up",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             text_color="white",
             fg_color="#343638",
             #fg_color="#d622dc",
@@ -149,7 +153,7 @@ class titan_login(tk.CTk):
         #button to enable user to change password when it forgotten
         self.forgot_pass_button = tk.CTkButton(master=self.login_frame, 
             text="forgot password",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             text_color="white",
             fg_color="#343638",
             #fg_color="#d622dc",
@@ -166,7 +170,7 @@ class titan_login(tk.CTk):
             bg_color="black",
             text="TITAN",
             text_color="white",
-            font=(("comicsans",37)),
+            font=(("Comic Sans",37)),
             width=100,
             height=60,
         )
@@ -185,7 +189,7 @@ class titan_login(tk.CTk):
         # master is entry box to place the buttons in the entry box
         self.view_text = tk.CTkButton(master=self.password_entry,
             text="👁",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             text_color="white",
             fg_color="black",
             hover_color="grey",
@@ -269,7 +273,7 @@ class titan_signup(tk.CTk):
             placeholder_text_color="grey",
             corner_radius=25,
             show="",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             fg_color="black",
             border_width=0.95,
             border_color="white",
@@ -284,7 +288,7 @@ class titan_signup(tk.CTk):
             placeholder_text_color="grey",
             corner_radius=25,
             show="",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             fg_color="black",
             border_width=0.95,
             border_color="white",
@@ -299,7 +303,7 @@ class titan_signup(tk.CTk):
             placeholder_text_color="grey",
             corner_radius=25,
             show="",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             fg_color="black",
             border_width=0.95,
             border_color="white",
@@ -314,7 +318,7 @@ class titan_signup(tk.CTk):
             placeholder_text_color="grey",
             corner_radius=25,
             show="*",
-            font=(("comicsans",20)),
+            font=(("Comic Sans",20)),
             fg_color="black",
             border_width=0.95,
             border_color="white",
@@ -353,7 +357,7 @@ class titan_main(tk.CTk):
             bg_color="black",
             text="TITAN",
             text_color="white",
-            font=(("comicsans",37)),
+            font=(("Comic Sans",37)),
             width=100,
             height=60,
         )
@@ -407,7 +411,7 @@ class titan_main(tk.CTk):
         
         self.weather_info = tk.CTkLabel(master=self.current_weather_frame,
             text="Current Weather: Not Calculated",
-            font=(("comicsans",19)),
+            font=(("Comic Sans",19)),
             width=90,
             height=80,
             bg_color="#343638",
@@ -427,7 +431,7 @@ class titan_main(tk.CTk):
             text="",
             image=self.telescope_TF,
             corner_radius=35,
-            fg_color="lightgreen",
+            fg_color="#27962f",
             bg_color="#343638"
         )
         self.telescope_icon.place(relx=0.98, rely=0.5, anchor="e")
@@ -438,47 +442,72 @@ class titan_main(tk.CTk):
             height=150,
             corner_radius=35,
             fg_color="#343638",
-            bg_color="black",
+            border_width=8,
+            border_color="#343638"
         )
         self.moon_frame.place(relx=0.2, rely=0.45, anchor="s")
         
         #variable for changing moon phases
-        self.moon_path = ("image_files/moony.png")
+        self.moon_path = pw.get_moon_phase()
         
         self.moon_config = tk.CTkImage(
             light_image=Image.open(self.moon_path),
             dark_image=Image.open(self.moon_path),
-            size=(100,100)
+            size=(130,130)
         )
         
         self.moon_label = tk.CTkLabel(master=self.moon_frame, 
             text="",
-            width=125,
-            height=125,
+            width=50,
+            height=100,
             image=self.moon_config,
+            fg_color="black",
+            corner_radius=30,
+            bg_color="transparent"
+            
         )
-        self.moon_label.place(relx=0.03, rely=0.07)
+        self.moon_label.place(relx=0.02, rely=0.06 )
+        
+        self.moon_tf = tk.CTkLabel(master=self.moon_frame, 
+            text="Not Visible",
+            font=(("Comic Sans",20)),
+            width=275,
+            height=75,
+            fg_color="#1a1b1c",
+            corner_radius=25
+        )
+        self.moon_tf.place(relx=0.43, rely=0.06)
+        
+        self.moon_phase = tk.CTkLabel(master=self.moon_frame, 
+            text="Waning gibbous",
+            font=(("Comic Sans",20)),
+            width=275,
+            height=50,
+            fg_color="#1a1b1c",
+            corner_radius=20,
+        )
+        self.moon_phase.place(relx=0.43, rely=0.6)
         
         
         #frame for the planet widgets, shwoing you what planets are visible on that current day
+        #contains all of the planet tabs
         self.planet_vision = tk.CTkScrollableFrame(master=self.weather_tab,
             width=675,
             height=555,
             bg_color="black",
             fg_color="#343638",
-            corner_radius=35,
+            corner_radius=30,
             orientation="vertical",
-            scrollbar_button_color="black",
-            scrollbar_button_hover_color="white",
-            scrollbar_fg_color="#343638"
+            scrollbar_button_color="#242526",
+            scrollbar_button_hover_color="#242526",
+            scrollbar_fg_color="#343638",
+            
         )
         self.planet_vision.place(relx=0.41, rely=0.52, anchor="w")
-        #planet_vision elements
+    
+    #planet_vision elements
         
-        
-        
-        #toggle for using gps to track location
-                
+        #toggle for using gps to track location   
         self.toggle_var = tk.StringVar(value=False)
         self.location_toggle = tk.CTkSwitch(master=self.weather_tab,
             text="location",
@@ -486,7 +515,7 @@ class titan_main(tk.CTk):
             height=90,
             switch_width=100,
             switch_height=45,
-            corner_radius=35,
+            corner_radius=40,
             progress_color="lightgreen",
             border_color="white",
             border_width=0.4,
@@ -494,17 +523,580 @@ class titan_main(tk.CTk):
             offvalue=False,
             fg_color="#f04832",
             bg_color="black",
-            font=(("comicsans",25)),
-            #command=check_toggle
+            font=(("Comic Sans",25)),
+            #command=self.location_check
         )
         self.location_toggle.place(relx=0.004, rely=0.89)
-        '''
-        def check_toggle(self):
-            if self.location_toggle.get():
-                self.api_entry.configure(state="disabled")
-            else:
-                self.api_entry.configure(state="normal")
-        '''    
+        
+        #self.api_entry = tk.CTkEntry(comamnd=)
+        
+        #tab that will display the time that mercury will appera at night connection with skyfield
+        #frame within a scrollable frame
+        
+        #for loop for all tabs in the scrollable tab planet vision frame
+    
+    # mercury elements-------------------------------------------
+        self.mercury_tab = tk.CTkFrame(master=self.planet_vision,
+            width=650,
+            height=150,
+            fg_color="#242526",
+            bg_color="#343638",
+            corner_radius=50,
+            border_color="#242526",
+            border_width=5
+        )
+        self.mercury_tab.grid(pady=10, row=1, column=0)
+        
+        self.mercury_config = tk.CTkImage(
+            light_image=Image.open("image_files\mercury.png"),
+            dark_image=Image.open("image_files\mercury.png"),
+            size=(125,125)
+        )
+        
+        self.mercury_label = tk.CTkLabel(master=self.mercury_tab, 
+            text="",
+            width=100,
+            height=100,
+            image=self.mercury_config,
+            fg_color="#242526"
+        )
+        self.mercury_label.place(relx=0.03, rely=0.095)
+        
+        self.mercury_text = tk.CTkLabel(master=self.mercury_tab, 
+            text="MERCURY",
+            font=(("Comic Sans",35)),
+            width=100,
+            height=100
+        )
+        self.mercury_text.place(relx=0.25, rely=0.15)
+        
+        self.mercury_tf = tk.CTkLabel(master=self.mercury_tab, 
+            text="Not Visible",
+            font=(("Comic Sans",30)),
+            width=175,
+            height=120,
+            fg_color="#1a1b1c",
+            corner_radius=35,
+            anchor="w"
+        )
+        self.mercury_tf.place(relx=0.65, rely=0.1)
+        
+        
+    #venus elements---------------------------------------------
+        self.venus_tab = tk.CTkFrame(master=self.planet_vision,
+            width=650,
+            height=150,
+            fg_color="#242526",
+            bg_color="#343638",
+            corner_radius=50,
+            border_color="#242526",
+            border_width=5
+        )
+        self.venus_tab.grid(pady=10, row=2, column=0)
+        
+        self.venus_config = tk.CTkImage(
+            light_image=Image.open("image_files\\venus.png"),
+            dark_image=Image.open("image_files\\venus.png"),
+            size=(125,125)
+        )
+        
+        self.venus_label = tk.CTkLabel(master=self.venus_tab, 
+            text="",
+            width=100,
+            height=100,
+            image=self.venus_config,
+            fg_color="#242526"
+        )
+        self.venus_label.place(relx=0.03, rely=0.095)
+        
+        self.venus_text = tk.CTkLabel(master=self.venus_tab, 
+            text="VENUS",
+            font=(("Comic Sans",35)),
+            width=100,
+            height=100
+        )
+        self.venus_text.place(relx=0.25, rely=0.15)
+        
+        self.venus_tf = tk.CTkLabel(master=self.venus_tab, 
+            text="Not Visible",
+            font=(("Comic Sans",30)),
+            width=175,
+            height=120,
+            fg_color="#1a1b1c",
+            corner_radius=35,
+            anchor="w"
+        )
+        self.venus_tf.place(relx=0.65, rely=0.1)
+        
+    #mars elements------------------------------------------
+        self.mars_tab = tk.CTkFrame(master=self.planet_vision,
+            width=650,
+            height=150,
+            fg_color="#242526",
+            bg_color="#343638",
+            corner_radius=50,
+            border_color="#242526",
+            border_width=5
+        )
+        self.mars_tab.grid(pady=10, row=3, column=0)
+        
+        self.mars_config = tk.CTkImage(
+            light_image=Image.open("image_files\\mars.png"),
+            dark_image=Image.open("image_files\\mars.png"),
+            size=(125,125)
+        )
+        
+        self.mars_label = tk.CTkLabel(master=self.mars_tab, 
+            text="",
+            width=100,
+            height=100,
+            image=self.mars_config,
+            fg_color="#242526"
+        )
+        self.mars_label.place(relx=0.03, rely=0.095)
+        
+        self.mars_text = tk.CTkLabel(master=self.mars_tab, 
+            text="MARS",
+            font=(("Comic Sans",35)),
+            width=100,
+            height=100
+        )
+        self.mars_text.place(relx=0.25, rely=0.15)
+        
+        self.mars_tf = tk.CTkLabel(master=self.mars_tab, 
+            text="Visible",
+            text_color="black",
+            font=(("Comic Sans",30)),
+            width=215,
+            height=120,
+            fg_color="green", #27962f
+            corner_radius=35,
+            anchor="center",
+        )
+        self.mars_tf.place(relx=0.65, rely=0.1)
+        
+    #jupiter elements-----------------------------------------
+        self.jupiter_tab = tk.CTkFrame(master=self.planet_vision,
+            width=650,
+            height=150,
+            fg_color="#242526",
+            bg_color="#343638",
+            corner_radius=50,
+            border_color="#242526",
+            border_width=5
+        )
+        self.jupiter_tab.grid(pady=10, row=4, column=0)
+        
+        self.jupiter_config = tk.CTkImage(
+            light_image=Image.open("image_files\\jupiter.png"),
+            dark_image=Image.open("image_files\\jupiter.png"),
+            size=(125,125)
+        )
+        
+        self.jupiter_label = tk.CTkLabel(master=self.jupiter_tab, 
+            text="",
+            width=100,
+            height=100,
+            image=self.jupiter_config,
+            fg_color="#242526"
+        )
+        self.jupiter_label.place(relx=0.03, rely=0.095)
+        
+        self.jupiter_text = tk.CTkLabel(master=self.jupiter_tab, 
+            text="JUPITER",
+            font=(("Comic Sans",35)),
+            width=100,
+            height=100
+        )
+        self.jupiter_text.place(relx=0.25, rely=0.15)
+        
+        self.jupiter_tf = tk.CTkLabel(master=self.jupiter_tab, 
+            text="Not Visible",
+            font=(("Comic Sans",30)),
+            width=175,
+            height=120,
+            fg_color="#1a1b1c",
+            corner_radius=35,
+            anchor="w"
+        )
+        self.jupiter_tf.place(relx=0.65, rely=0.1)
+        
+    #saturn elements------------------------------------------
+        self.saturn_tab = tk.CTkFrame(master=self.planet_vision,
+            width=650,
+            height=150,
+            fg_color="#242526",
+            bg_color="#343638",
+            corner_radius=50,
+            border_color="#242526",
+            border_width=5
+        )
+        self.saturn_tab.grid(pady=10, row=5, column=0)
+        
+        self.saturn_config = tk.CTkImage(
+            light_image=Image.open("image_files\\saturn.png"),
+            dark_image=Image.open("image_files\\saturn.png"),
+            size=(125,125)
+        )
+        
+        self.saturn_label = tk.CTkLabel(master=self.saturn_tab, 
+            text="",
+            width=100,
+            height=100,
+            image=self.saturn_config,
+            fg_color="#242526"
+        )
+        self.saturn_label.place(relx=0.03, rely=0.095)
+        
+        self.saturn_text = tk.CTkLabel(master=self.saturn_tab, 
+            text="SATURN",
+            font=(("Comic Sans",35)),
+            width=100,
+            height=100
+        )
+        self.saturn_text.place(relx=0.25, rely=0.15)
+        
+        self.saturn_tf = tk.CTkLabel(master=self.saturn_tab, 
+            text="Not Visible",
+            font=(("Comic Sans",30)),
+            width=175,
+            height=120,
+            fg_color="#1a1b1c",
+            corner_radius=35,
+            anchor="w"
+        )
+        self.saturn_tf.place(relx=0.65, rely=0.1)
+        
+    #uranus elements-----------------------------------------------
+        self.uranus_tab = tk.CTkFrame(master=self.planet_vision,
+            width=650,
+            height=150,
+            fg_color="#242526",
+            bg_color="#343638",
+            corner_radius=50,
+            border_color="#242526",
+            border_width=5
+        )
+        self.uranus_tab.grid(pady=10, row=6, column=0)
+        
+        self.uranus_config = tk.CTkImage(
+            light_image=Image.open("image_files\\uranus.png"),
+            dark_image=Image.open("image_files\\uranus.png"),
+            size=(125,125)
+        )
+        
+        self.uranus_label = tk.CTkLabel(master=self.uranus_tab, 
+            text="",
+            width=100,
+            height=100,
+            image=self.uranus_config,
+            fg_color="#242526"
+        )
+        self.uranus_label.place(relx=0.03, rely=0.095)
+        
+        self.uranus_text = tk.CTkLabel(master=self.uranus_tab, 
+            text="URANUS",
+            font=(("Comic Sans",35)),
+            width=100,
+            height=100
+        )
+        self.uranus_text.place(relx=0.25, rely=0.15)
+        
+        self.uranus_tf = tk.CTkLabel(master=self.uranus_tab, 
+            text="Not Visible",
+            font=(("Comic Sans",30)),
+            width=175,
+            height=120,
+            fg_color="#1a1b1c",
+            corner_radius=35,
+            anchor="w"
+        )
+        self.uranus_tf.place(relx=0.65, rely=0.1)
+        
+    #neptune elements----------------------------------------------
+        self.neptune_tab = tk.CTkFrame(master=self.planet_vision,
+            width=650,
+            height=150,
+            fg_color="#242526",
+            bg_color="#343638",
+            corner_radius=50,
+            border_color="#242526",
+            border_width=5
+        )
+        self.neptune_tab.grid(pady=10, row=7, column=0)
+        
+        self.neptune_config = tk.CTkImage(
+            light_image=Image.open("image_files\\neptune.png"),
+            dark_image=Image.open("image_files\\neptune.png"),
+            size=(125,125)
+        )
+        
+        self.neptune_label = tk.CTkLabel(master=self.neptune_tab, 
+            text="",
+            width=100,
+            height=100,
+            image=self.neptune_config,
+            fg_color="#242526"
+        )
+        self.neptune_label.place(relx=0.03, rely=0.095)
+        
+        self.neptune_text = tk.CTkLabel(master=self.neptune_tab, 
+            text="NEPTUNE",
+            font=(("Comic Sans",35)),
+            width=100,
+            height=100
+        )
+        self.neptune_text.place(relx=0.25, rely=0.15)
+
+        self.neptune_tf = tk.CTkLabel(master=self.neptune_tab, 
+            text="Not Visible",
+            font=(("Comic Sans",30)),
+            width=175,
+            height=120,
+            fg_color="#1a1b1c",
+            corner_radius=35,
+            anchor="w"
+        )
+        self.neptune_tf.place(relx=0.65, rely=0.1)
+
+
+    #actual current weather tab for briefly shwoing weather condins, there are 4 widgets for it
+    #weather conditons are temperature, cloud cover, wind speed, and humidity
+        
+        #importing the funtion from weather file
+        longitude,latitude = pw.get_loc() #setting location to calculated location from get loc
+        set = get_sunset(longitude,latitude)
+        print (set)#for testing
+    
+        #label wich displays the time of sunset on the current day
+        self.sunset_label = tk.CTkLabel(master=self.weather_tab,
+            text=("Sunset Today at  "+set),
+            font=(("Comic Sans",25)),
+            fg_color="#343638",
+            text_color="white",
+            width=220,
+            height=80,
+            corner_radius=30
+        )
+        self.sunset_label.place(relx=0.005, rely=0.47)
+        
+        
+        #fits image processing elements
+        self.fits_tab = self.large_frame.add("FITS PROCESSING")
+        
+       
+        #displays the fit file converted to png
+        #self.fit_img = tf.display_fits(current_path=current_path)
+        #self.fit_open = Image.open('r',self.fit_img)
+        self.fits_config = tk.CTkImage(
+            light_image=Image.open("FITS_storage\\1.fit.png"),
+            dark_image=Image.open("FITS_storage\\1.fit.png"),
+            size=(550,525)
+        )
+     
+        self.fits_display = tk.CTkLabel(master=self.fits_tab,
+            width=635,
+            height=635,
+            fg_color="#343638",
+            text="",
+            corner_radius=35,
+            
+            image=self.fits_config,
+        )
+        self.fits_display.place(relx=0.01, rely=0.02)
+        
+        
+        self.file_text = tk.CTkEntry(master=self.fits_tab,
+            placeholder_text="Enter Filepath",
+            placeholder_text_color="grey",
+            width=275,
+            height=50,
+            fg_color="#343638",
+            font=(("Comic Sans",25)),
+            corner_radius=35
+        )
+        self.file_text.place(relx=0.78, rely=0.05)
+        
+        self.file_enter = tk.CTkButton(master=self.fits_tab,
+            width=275,
+            height=50,
+            text="Enter",
+            text_color="white",
+            fg_color="#343638", 
+            font=(("Comic Sans",25)),
+            hover_color="black",
+            corner_radius=35
+        )
+        self.file_enter.place(relx=0.78, rely=0.14)
+        
+        df = tf.display_folder(current_path)     
+        self.file_dropdown = tk.CTkOptionMenu(master=self.fits_tab,
+            width=300,
+            height=50,
+            dynamic_resizing=True,
+            corner_radius=35,
+            #values=df,
+            fg_color="#343638",
+            button_color="#242526",
+            #command=self.drop_file
+        )
+        self.file_dropdown.place(relx=0.525, rely=0.05)
+        
+        #ef drop_file(self):
+        #    value = self.file_dropdown.dropdown.get()
+        #    if value in (current_path):
+        #        file_inp = disf(value)
+        #        return file_inp
+            
+            
+        self.edit_frame = tk.CTkFrame(master=self.fits_tab,
+            width=600,
+            height=420,
+            corner_radius=35,
+            fg_color="#343638"
+        )
+        self.edit_frame.place(relx=0.525, rely=0.35)
+        
+        edit_options = ["Blue","Green","red"]
+        self.green_b = tk.CTkSegmentedButton(master=self.edit_frame,
+            width=550,
+            height=290,
+            corner_radius=30,
+            values=edit_options,
+            selected_hover_color="#343638",
+            selected_color="#343638",
+            dynamic_resizing=True,
+            font=(("Comic Sans",25))
+        )
+        self.green_b.place(relx=0.015, rely=0.02)
+
+        self.save_b = tk.CTkButton(master=self.edit_frame,
+            text = "Save",
+            font=(("Comic Sans",25)),
+            fg_color="#242526",
+            hover_color="black",
+            width=225,
+            height=100,
+            corner_radius=30                                            
+        )
+        self.save_b.place(relx=0.015, rely=0.74)  
+        
+        self.open_b = tk.CTkButton(master=self.edit_frame,
+            text = "Open",
+            font=(("Comic Sans",25)),
+            fg_color="#242526",
+            hover_color="black",
+            width=225,
+            height=100,
+            corner_radius=30                                            
+        )
+        self.open_b.place(relx=0.4, rely=0.74)
+        
+        self.exit_b = tk.CTkButton(master=self.edit_frame,
+            text = "Exit",
+            font=(("Comic Sans",25)),
+            fg_color="#242526",
+            hover_color="black",
+            width=100,
+            height=100,
+            corner_radius=30                                            
+        )
+        self.exit_b.place(relx=0.8, rely=0.74)  
+        
+        #test
+        
+        
+        #calendar elements
+        self.test_tab3 = self.large_frame.add("calendar")
+        #test
+        
+        #diary elements
+        self.diary_tab = self.large_frame.add("Diary")
+        
+        self.text_frame = tk.CTkFrame(master=self.diary_tab,
+            width =1225,
+            height=600,
+            corner_radius=35,
+        )
+        self.text_frame.place(relx=0.01, rely=0.05)
+        
+        self.diary_inp = tk.CTkTextbox(master=self.text_frame,
+            width=630,
+            height=650,
+            fg_color="#fbe982",
+            corner_radius=30,
+            text_color="black",
+            scrollbar_button_color="#d4c46c",
+            scrollbar_button_hover_color="#d4c46c"
+        )
+        self.diary_inp.place(relx=0.25, rely=0.02)
+        
+        self.font_size = tk.CTkOptionMenu(master=self.text_frame,
+            width=250,
+            height=40,
+            values=[str(i) for i in range(1,50)],
+            fg_color="#343638",
+            corner_radius=35,
+            command=self.update_font
+        )
+        self.font_size.place(relx=0.01, rely=0.03)
+        
+        self.font_label = tk.CTkLabel(master=self.text_frame,
+            fg_color="#343638",
+            text_color="white",
+            width=40,
+            height=40,
+            text="Font size",
+            font=(("Comic Sans",15))
+        )
+        self.font_label.place(relx=0.1, rely=0.03)
+        
+        self.active_fonts = ["Arial", "Times New Roman", "Verdana", "Courier New", "Comic Sans"]
+        self.font_option = tk.CTkOptionMenu(master=self.text_frame,
+            width=250,
+            height=40,
+            values=self.active_fonts,
+            fg_color="#343638",
+            corner_radius=35,
+            command=self.update_font
+        )
+        self.font_option.place(relx=0.01, rely=0.11)
+        
+        self.type_label = tk.CTkLabel(master=self.text_frame,
+            fg_color="#343638",
+            text_color="white",
+            width=40,
+            height=40,
+            text="Font",
+            font=(("Comic Sans",15))
+        )
+        self.type_label.place(relx=0.1, rely=0.11)
+
+        #settings elements
+        self.test_tab5 = self.large_frame.add("settings")
+        
+    #funtion zone --------------------------------------------------------
+    def update_font(self, _=None):
+        current_size = int(self.font_size.get())
+        current_font = (self.font_option.get())
+        self.diary_inp.configure(font=(current_font, (current_size)))
+
+    #funtion that will eventually check if switch is on and turn
+    #location tracking on/off
+    '''
+    def location_check(self):
+        longitude = 0
+        latitude = 0
+        toggle = self.location_toggle.get()
+        if toggle == True:
+            longitude, latitude = pw.get_loc()
+            print (longitude)
+            print (latitude)
+                
+        elif toggle == False:
+            print (longitude)
+            print (latitude)
+           
         self.api_entry = tk.CTkEntry(master=self.weather_tab,
            width=240,
            height=65,
@@ -512,141 +1104,14 @@ class titan_main(tk.CTk):
            corner_radius=35,
            fg_color="#343638",  
            bg_color="black",
-           font=(("comicsans",22))   
+           font=(("Comic Sans",22))   
         )
         self.api_entry.place(relx=0.18, rely=0.90)
         
-
-                
-        
-        
-        
-        #self.api_entry = tk.CTkEntry(comamnd=)
-        
-        #tab that will display the time that murcury will appera at night connection with skyfield
-        #frame within a scrollable frame
-        
-        #for loop for all tabs in the scrollable tab planet vision frame
-    
-    # murcury elements
-        self.murcury_tab = tk.CTkFrame(master=self.planet_vision,
-            width=650,
-            height=150,
-            fg_color="#343638",
-            bg_color="#343638",
-            corner_radius=50,
-            border_color="black",
-            border_width=5
-        )
-        
-        self.murcury_tab.grid(pady=10, row=1, column=0)
-        
-        self.murcury_config = tk.CTkImage(
-            light_image=Image.open("image_files\saturn.png"),
-            dark_image=Image.open("image_files\saturn.png"),
-            size=(110,110)
-        )
-        
-        self.murcury_label = tk.CTkLabel(master=self.murcury_tab, 
-            text="",
-            width=100,
-            height=100,
-            image=self.murcury_config,
-            fg_color="#343638"
-        )
-        self.murcury_label.place(relx=0.03, rely=0.12)
-        
-
-        self.venus_tab = tk.CTkFrame(master=self.planet_vision,
-            width=650,
-            height=150,
-            fg_color="#343638",
-            bg_color="#343638",
-            corner_radius=50,
-            border_color="black",
-            border_width=3
-        )
-        self.venus_tab.grid(pady=10, row=2, column=0)
-        
-        self.mars_tab = tk.CTkFrame(master=self.planet_vision,
-            width=650,
-            height=150,
-            fg_color="#343638",
-            bg_color="#343638",
-            corner_radius=50,
-            border_color="black",
-            border_width=3
-        )
-        self.mars_tab.grid(pady=10, row=3, column=0)
-        
-        self.jupiter_tab = tk.CTkFrame(master=self.planet_vision,
-            width=650,
-            height=150,
-            fg_color="#343638",
-            bg_color="#343638",
-            corner_radius=50,
-            border_color="black",
-            border_width=3
-        )
-        self.jupiter_tab.grid(pady=10, row=4, column=0)
-        
-        self.saturn_tab = tk.CTkFrame(master=self.planet_vision,
-            width=650,
-            height=150,
-            fg_color="#343638",
-            bg_color="#343638",
-            corner_radius=50,
-            border_color="black",
-            border_width=3
-        )
-        self.saturn_tab.grid(pady=10, row=5, column=0)
-        
-        self.uranus_tab = tk.CTkFrame(master=self.planet_vision,
-            width=650,
-            height=150,
-            fg_color="#343638",
-            bg_color="#343638",
-            corner_radius=50,
-            border_color="black",
-            border_width=3
-        )
-        self.uranus_tab.grid(pady=10, row=6, column=0)
-        
-        self.neptune_tab = tk.CTkFrame(master=self.planet_vision,
-            width=650,
-            height=150,
-            fg_color="#343638",
-            bg_color="#343638",
-            corner_radius=50,
-            border_color="black",
-            border_width=3
-        )
-        self. neptune_tab.grid(pady=10, row=7, column=0)
-
-
-        
-        
-        
-        #fits image processing elements
-        self.fits_tab = self.large_frame.add("FITS PROCESSING")
-        #test
-        
-        #calendar elements
-        self.test_tab3 = self.large_frame.add("calendar")
-        #test
-        
-        #diary elements
-        self.test_tab4 = self.large_frame.add("Diary")
-        #test
-        
-        #settings elements
-        self.test_tab5 = self.large_frame.add("settings")
-        #test
-        
-        
-        
+        '''
 #runs app, by defining the class and running its contents
 
 if __name__ == "__main__":
-    app = titan_main()#titan_signup
+    app = titan_login()#titan_signup
     app.mainloop()
+
