@@ -1,6 +1,6 @@
 import mysql.connector
-import titan_gui
-#import hashlib
+import bcrypt
+
 
 connection = mysql.connector.connect(
     user="root",
@@ -9,7 +9,6 @@ connection = mysql.connector.connect(
     port = 3306,
 )      
             
-      
 #creates cursor to allow the creation and changing of databases
 cursor = connection.cursor()
 #executes the create database if not exists
@@ -28,37 +27,38 @@ cursor = connection.cursor()
 
 #creates tables
 cursor.execute(
-    '''
-    CREATE TABLE IF NOT EXISTS users(
-    ID INT AUTO_INCREMENT PRIMARY KEY,
-    usernames VARCHAR(30) NOT NULL ,
-    hashed_pass VARCHAR(30) NOT NULL,
-    Titan_folder CHAR(50) NOT NULL
-    )     
-    '''
+        '''
+        CREATE TABLE IF NOT EXISTS titanUsers(
+        ID INT AUTO_INCREMENT PRIMARY KEY,
+        userNames VARCHAR(30) NOT NULL,
+        hashedPass VARCHAR(30) NOT NULL,
+        TitanFolder CHAR(50) NOT NULL 
+        )     
+        '''     
 )
 
-def connect_user_folder():
-    #f account is created then
+'''
+#function that will be used to create an accounr
+#funtion gets current input from the entry box and will hash it
+def create_acc():
     
-    
-username = "admin"
-password = "test"
-add_account = ("INSERT INTO users (usernames, hashed_pass, Titan_folder) VALUES (%s, %s, %s)")
-account_test = (username, password, )
-cursor.execute(add_account, account_test)
-
-    
-#cursor.execute("INSERT INTO users, 'username','hashed_pass' VALUES 'test1', 'test2' ")
-#sign up and login check code, passing information from "titan_gui" another file in my code
-
-#def check_signup():
- 
- 
- 
- 
-    
-#def check_login():
+    tl = titan_signup() # connects to the titanlogin class file to get user input
+    l_pass = tl.get_pass # calluing the fucntion from the class
+    print (l_pass)#output to test if the function is grabbing the text
 
 
-connection.commit()
+#using bcrypt to hash a password entered by user during login 
+
+bcrypt.hash(, saltRounds, function(err, hash) {
+    // Store hash in your password DB.
+})
+
+#function that will be used to create an accounr
+#funtion gets current input from the entry box and will hash it
+
+def create_acc():
+    
+    tl = titan_signup() # connects to the titanlogin class file to get user input
+    l_pass = tl.get_pass # calluing the fucntion from the class
+    print (l_pass)#output to test if the function is grabbing the text
+'''

@@ -2,11 +2,10 @@ import customtkinter as tk
 from PIL import Image
 import PIL
 import titan_main_gui
-import planet_weather as pw
-from planet_weather import get_sunset
-import titan_FITS as tf
-from titan_FITS import current_path
-#used customtkinter documentation to help with multiwindow development
+from titan_moon_sun import get_sunset, m_img, m_text, user_longitude, user_latitude
+from titan_FITS import display_fits, display_folder, current_path
+from pytube import *
+#used customtkinter documentation to help ith multiwindow development
 #used to help with ctk classes: https://www.youtube.com/watch?v=GPcCLiOYVe4
 tk.set_appearance_mode("dark")#"light"
 #---------------------------------------------------------------------------#
@@ -448,11 +447,10 @@ class titan_main(tk.CTk):
         self.moon_frame.place(relx=0.2, rely=0.45, anchor="s")
         
         #variable for changing moon phases
-        self.moon_path = pw.get_moon_phase()
         
         self.moon_config = tk.CTkImage(
-            light_image=Image.open(self.moon_path),
-            dark_image=Image.open(self.moon_path),
+            light_image=Image.open(m_img),
+            dark_image=Image.open(m_img),
             size=(130,130)
         )
         
@@ -479,7 +477,7 @@ class titan_main(tk.CTk):
         self.moon_tf.place(relx=0.43, rely=0.06)
         
         self.moon_phase = tk.CTkLabel(master=self.moon_frame, 
-            text="Waning gibbous",
+            text=m_text,
             font=(("Comic Sans",20)),
             width=275,
             height=50,
@@ -863,9 +861,8 @@ class titan_main(tk.CTk):
     #actual current weather tab for briefly shwoing weather condins, there are 4 widgets for it
     #weather conditons are temperature, cloud cover, wind speed, and humidity
         
-        #importing the funtion from weather file
-        longitude,latitude = pw.get_loc() #setting location to calculated location from get loc
-        set = get_sunset(longitude,latitude)
+        #setting location to calculated location from get loc
+        set = get_sunset(user_longitude,user_latitude)
         print (set)#for testing
     
         #label wich displays the time of sunset on the current day
@@ -884,24 +881,13 @@ class titan_main(tk.CTk):
         #fits image processing elements
         self.fits_tab = self.large_frame.add("FITS PROCESSING")
         
-       
-        #displays the fit file converted to png
-        #self.fit_img = tf.display_fits(current_path=current_path)
-        #self.fit_open = Image.open('r',self.fit_img)
-        self.fits_config = tk.CTkImage(
-            light_image=Image.open("FITS_storage\\1.fit.png"),
-            dark_image=Image.open("FITS_storage\\1.fit.png"),
-            size=(550,525)
-        )
-     
         self.fits_display = tk.CTkLabel(master=self.fits_tab,
             width=635,
             height=635,
             fg_color="#343638",
             text="",
             corner_radius=35,
-            
-            image=self.fits_config,
+            image=""
         )
         self.fits_display.place(relx=0.01, rely=0.02)
         
@@ -929,26 +915,18 @@ class titan_main(tk.CTk):
         )
         self.file_enter.place(relx=0.78, rely=0.14)
         
-        df = tf.display_folder(current_path)     
         self.file_dropdown = tk.CTkOptionMenu(master=self.fits_tab,
             width=300,
             height=50,
             dynamic_resizing=True,
             corner_radius=35,
-            #values=df,
+            values=display_folder(current_path),
             fg_color="#343638",
             button_color="#242526",
-            #command=self.drop_file
+            command=self.update_img
         )
         self.file_dropdown.place(relx=0.525, rely=0.05)
-        
-        #ef drop_file(self):
-        #    value = self.file_dropdown.dropdown.get()
-        #    if value in (current_path):
-        #        file_inp = disf(value)
-        #        return file_inp
-            
-            
+                
         self.edit_frame = tk.CTkFrame(master=self.fits_tab,
             width=600,
             height=420,
@@ -974,10 +952,12 @@ class titan_main(tk.CTk):
             text = "Save",
             font=(("Comic Sans",25)),
             fg_color="#242526",
+            bg_color="#2b2b2b",
             hover_color="black",
             width=225,
             height=100,
-            corner_radius=30                                            
+            corner_radius=30,
+            command=self.save_text                                          
         )
         self.save_b.place(relx=0.015, rely=0.74)  
         
@@ -988,7 +968,8 @@ class titan_main(tk.CTk):
             hover_color="black",
             width=225,
             height=100,
-            corner_radius=30                                            
+            corner_radius=30,
+            command=self.update_img                                         
         )
         self.open_b.place(relx=0.4, rely=0.74)
         
@@ -1027,14 +1008,16 @@ class titan_main(tk.CTk):
             corner_radius=30,
             text_color="black",
             scrollbar_button_color="#d4c46c",
-            scrollbar_button_hover_color="#d4c46c"
+            scrollbar_button_hover_color="#d4c46c",
+            wrap = "word"
+            
         )
         self.diary_inp.place(relx=0.25, rely=0.02)
         
         self.font_size = tk.CTkOptionMenu(master=self.text_frame,
             width=250,
             height=40,
-            values=[str(i) for i in range(1,50)],
+            values=[str(i) for i in range(1,51)],
             fg_color="#343638",
             corner_radius=35,
             command=self.update_font
@@ -1062,6 +1045,27 @@ class titan_main(tk.CTk):
         )
         self.font_option.place(relx=0.01, rely=0.11)
         
+        self.colour_label = tk.CTkLabel(master=self.diary_tab,
+            fg_color="#343638",
+            text_color="white",
+            width=40,
+            height=35,
+            text="Text colour",
+            font=(("Comic Sans",15))
+        )
+        self.colour_label.place(relx=0.1, rely=0.23)
+        
+        self.colour_options = ["black", "white", "blue", "red", "green", "purple"]
+        self.text_colour = tk.CTkOptionMenu(master=self.text_frame,
+            width=250,
+            height=40,
+            values=self.colour_options,
+            fg_color="#343638",
+            corner_radius=35,
+            command=self.update_font
+        )
+        self.text_colour.place(relx=0.01, rely=0.19)
+        
         self.type_label = tk.CTkLabel(master=self.text_frame,
             fg_color="#343638",
             text_color="white",
@@ -1071,16 +1075,87 @@ class titan_main(tk.CTk):
             font=(("Comic Sans",15))
         )
         self.type_label.place(relx=0.1, rely=0.11)
-
+      
+        self.page_colour_options = ["default", "white", "black", "darkgreen"]
+        self.page_colour = tk.CTkOptionMenu(master=self.text_frame,
+            width=250,
+            height=40,
+            values=self.page_colour_options,
+            fg_color="#343638",
+            corner_radius=35,
+            command=self.update_font
+        )
+        self.page_colour.place(relx=0.01, rely=0.27)
+        
+        self.page_label = tk.CTkLabel(master=self.text_frame,
+            fg_color="#343638",
+            text_color="white",
+            width=40,
+            height=40,
+            text="Page colour",
+            font=(("Comic Sans",15))
+        )
+        self.page_label.place(relx=0.1, rely=0.27)
+        
+        self.save_dairy = tk.CTkButton(master=self.diary_tab,
+            width=250,
+            height=150,
+            bg_color="#854379",
+            corner_radius=35,
+            fg_color="#343638",
+            text="Save as .txt",
+            command=self.save_text
+        )
+        self.save_dairy.place(relx=0.78, rely=0.7)
         #settings elements
         self.test_tab5 = self.large_frame.add("settings")
         
+    
     #funtion zone --------------------------------------------------------
+   
+    def save_text(self, CTkToplevel):
+        file_name = CTkToplevel(self)
+        file_name.title("input")
+        file_name.
+        
+        text_inp = self.diary_inp.get(0.0, "end") #gets current text in diary entry
+        with open("text_files\\test.txt", "w") as text_file:#opens/creates a text file with input passed into it
+            text_file.write(text_inp)
+            return text_inp
+            
     def update_font(self, _=None):
-        current_size = int(self.font_size.get())
-        current_font = (self.font_option.get())
-        self.diary_inp.configure(font=(current_font, (current_size)))
+        current_size = int(self.font_size.get()) # current selected number
+        current_font = (self.font_option.get())  # selected item from list
+        current_colour = (self.text_colour.get())# selected colour from list
+        current_page_colour = (self.page_colour.get())
+        
+        #configures the "font" to current_size, current font
+        if current_page_colour == "default":
+            self.diary_inp.configure(
+            font=(current_font, 
+            (current_size)), 
+            text_color=current_colour,
+            fg_color="#fbe982"#set default colour since this colour uses a colour code
+                            #and is not built into custom tkinter
+        )
+        
+        else:
+            self.diary_inp.configure(
+                font=(current_font, 
+                (current_size)), 
+                text_color=current_colour,
+                fg_color=current_page_colour
+        )
+            
+    def get_value (self,current_value):
+        self.file_dropdown.get(current_value)
+        return
 
+    def update_img(self, selected_file):
+        selected_file = self.file_dropdown.get()
+        png_path = display_fits(current_path, selected_file)
+        image = tk.CTkImage(file=png_path)
+        self.fits_display.configure(image=image)
     #funtion that will eventually check if switch is on and turn
     #location tracking on/off
     '''
@@ -1112,6 +1187,6 @@ class titan_main(tk.CTk):
 #runs app, by defining the class and running its contents
 
 if __name__ == "__main__":
-    app = titan_login()#titan_signup
+    app = titan_main()#titan_signup
     app.mainloop()
 

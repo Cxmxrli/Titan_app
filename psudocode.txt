@@ -1,0 +1,169 @@
+eyphem library // library to get moon/planet data
+
+function moon_phase:
+    if date is none: //checks if date is none, if so sets it to now
+        date = datetime()//using datetime
+
+    moon = eyphem_phase.moon //gets moon phase from eyphem
+
+    if moon = 0.00:
+        return ("new moon"),(igmfilepath)//returns the image and text
+        endif
+    elif moon = 0.00 < moon < 0.25:
+        return ("waxing crescent"),(imgfilepath)//returns the image and text
+        endif
+    elif moon = 0.25:
+        return ("first quarter"),(imgfilepath)//returns the image and text
+        endif
+    elif moon = 0.25 < moon < 0.50:
+        return ("waxing gibbous"),(imgfilepath)//returns the image and text
+        endif
+    elif moon = 0.50:
+        return ("full moon"),(imgfilepath)//returns the image and text
+        endif
+    elif moon = 0.50 < moon < 0.75:
+        return ("waning gibbous"),(imgfilepath)//returns the image and text
+        endif
+    elif moon = 0.75:
+        return ("last quarter"),(imgfilepath)//returns the image and text
+        endif
+    elif moon = 0.75 < moon < 1.00:
+        return ("waning crescent"),(imgfilepath)//returns the image and text
+        endif
+    else:
+        return ("error"),(errorimg)
+        endif
+    endif
+    
+
+
+
+import hashlib //hashing lib
+import tkinter //tkinter for gui
+
+function sign up():
+
+    //opens the sign up window in tkinter
+    open tk.signup_window(tktoplevel) 
+
+    //user prompted to enter username and password
+    user_s = input("please enter a username: )  
+    pass_s = input("please enter a password: )
+
+    //cursor to acces database
+    cursor = user_db.cursor()
+
+    //checks if the username is present in database
+    //returns an error if it exists
+    if user_s in user_db then:
+        print("username already exists...")
+        endif
+    
+    //commmits the username to the database
+    //then checks the password is the correct length
+    else:
+        COMMIT user_s to user_db
+        
+        //if password under ten characters error is given
+        if pass_s len < 10:
+            output("password must be over 10 char...")
+            endif
+        else:
+            //hashes password before commiting to database
+            hashed_p = pass_s.hash()
+            COMMIT hashed_p to user_db
+            endif
+        endif
+    endif
+
+    //closes the entry window and opens the main window
+    close tk.signup_window(tktoplevel)
+    open tk.main_window(tktoplevel)
+    end
+
+
+import ephem // library for calculating sunset 
+import customtkinter// libary for gui
+
+function get_sunset()
+
+    //variables for the longitude and latitude
+    longitude = 0.0
+    latitude = 0.0
+
+    longitude = input("please input your longitude: ")//entry for longitude
+    latitude = input("please input your latitude: ")//entry for latitude
+
+    time = input(int("input current time: ))//input for the time by user
+    date = input(int("input current date: ))//input for the date by user
+
+    sun = ephem.sun(longitude, latitude)//inputrs the previos lon/lat
+    sunset = get_sunset_time()//built 2in function
+
+    // displays the sunset time during on app frame
+    label = CTklabel(master = frame,
+    width = 60
+    height = 60
+    text = sunset // sunset variable being shown
+    )
+
+    return sunset
+
+
+import customtkinter //for gui and entry window
+import pathlib //alternate method for file saving
+
+//titan gui class
+class titan_main(CTk)
+
+    self.app = CtkWindow(size=400x400)//window size
+
+    self.entry_font = ["A","B","C"]//selection of fonts represented by abc
+    self.entry_size = input(int("Enter a font size as num: ))//number input for size
+    self.entry_colour = ["A","B","C"]//font colour selection represented by abc
+
+    //entry box to enter diary text into
+    self.entry_box(master = app, size = 60x40, 
+        font = entry_font, 
+        text_size = entry_size,
+        page_colour = entry_colour,
+        text = input
+        )
+
+    //button to save text file
+    self.save_btn = CTkButton(master = app,
+        size = 20x10
+        comamnd = self.save_text
+        )
+    
+    //button to open text file
+    self.open_btn = CTkButton(master = app,
+        size = 20x10
+        comamnd = self.open_text
+        )
+
+    //save text function
+    function save_text(self):
+        if save_btn tk.pressed = True://cheskc if button is pressed
+            file_name = input("please enter file name: ")//entry for the file name
+            if file_name exists in folder(text_files)://checks if file name is in use
+                print("file name in use")
+                endif
+            else:
+            //using pathlib library to write entry box contents to file
+            //file name is specified by user
+                SET file_path TO pathlib.Path(f"file_name_{username,datetime}.txt)
+                CALL file_path.write_text(entry_box.text)
+                endif
+
+    //open text function
+    function open_text(self):
+        for file in (text_files)://iterates through files in folder
+            file_list.append(file)
+
+            //using pathlib library to read files and paste it into entrybox
+            //file name is specified by files present
+            SET file_path TO pathlib.Path(file)
+            text_hold = CALL file_path.read(file)
+            entry_box.text = text_hold//pastes text into entry box        
+            enfor
